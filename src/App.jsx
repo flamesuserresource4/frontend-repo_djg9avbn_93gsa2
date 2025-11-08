@@ -1,28 +1,55 @@
-import { useState } from 'react'
+import { useMemo, useState } from 'react';
+import TopNav from './components/TopNav';
+import Hero from './components/Hero';
+import MenuGrid from './components/MenuGrid';
+import CartPanel from './components/CartPanel';
+import RolePanels from './components/RolePanels';
 
 function App() {
-  const [count, setCount] = useState(0)
+  const [role, setRole] = useState('student');
+  const [cart, setCart] = useState([]);
+  const [notifications] = useState(2);
+
+  const orders = useMemo(() => (
+    [
+      { id: 1024, items: 3, status: 'In Progress', eta: 12 },
+      { id: 1025, items: 1, status: 'Ready', eta: 0 },
+      { id: 1026, items: 2, status: 'Queued', eta: 18 },
+    ]
+  ), []);
+
+  const addToCart = (item) => {
+    setCart((prev) => {
+      const exists = prev.find((p) => p.id === item.id);
+      if (exists) {
+        return prev.map((p) => (p.id === item.id ? { ...p, qty: p.qty + 1 } : p));
+      }
+      return [...prev, { ...item, qty: 1 }];
+    });
+  };
+
+  const removeFromCart = (id) => setCart((prev) => prev.filter((p) => p.id !== id));
+  const clearCart = () => setCart([]);
+
+  const checkout = () => {
+    // In this sandbox, simulate UPI/QR by opening a modal-like alert.
+    alert('Payment simulated. In production, integrate UPI intent (Android), dynamic QR, or Razorpay/Stripe checkout.');
+    setCart([]);
+  };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-purple-50 to-blue-50 flex items-center justify-center">
-      <div className="bg-white p-8 rounded-lg shadow-lg">
-        <h1 className="text-3xl font-bold text-gray-800 mb-4">
-          Vibe Coding Platform
-        </h1>
-        <p className="text-gray-600 mb-6">
-          Your AI-powered development environment
-        </p>
-        <div className="text-center">
-          <button
-            onClick={() => setCount(count + 1)}
-            className="bg-blue-500 hover:bg-blue-600 text-white font-semibold py-2 px-4 rounded"
-          >
-            Count is {count}
-          </button>
-        </div>
-      </div>
+    <div className="min-h-screen bg-neutral-50">
+      <TopNav role={role} setRole={setRole} cartCount={cart.length} notifications={notifications} />
+      <Hero />
+      <MenuGrid onAdd={addToCart} />
+      <CartPanel cart={cart} onRemove={removeFromCart} onClear={clearCart} onCheckout={checkout} />
+      <RolePanels role={role} orders={orders} />
+
+      <footer className="mx-auto max-w-6xl px-4 py-10 text-center text-sm text-neutral-500">
+        Built for a smooth campus canteen experience with role-based views and a simulated QR/UPI checkout. Connect to your backend for real-time orders, Socket.io, and payments.
+      </footer>
     </div>
-  )
+  );
 }
 
-export default App
+export default App;
